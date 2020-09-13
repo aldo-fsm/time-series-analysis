@@ -31,7 +31,7 @@ st.write(
 st.write(
     px.line(x=train.index, y=train.value),
     px.box(
-        x=train.month,
+        x=train.month.apply(lambda month: calendar.month_name[month]),
         y=train.value,
         labels=dict(x='Mês')
     ),
