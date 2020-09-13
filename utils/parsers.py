@@ -31,6 +31,19 @@ def parseDataset(dataset: pd.DataFrame, timeColumn: str) -> pd.DataFrame:
     if dateOnly: dataset = dataset.set_index(dataset.index.date)
     return dataset
 
+def decomposeDate(dataset: pd.DataFrame, timeColumn: str = 'time', inplace=False):
+    if not inplace: dataset = dataset.copy()
+    dataset[['year', 'month', 'day', 'weekday', 'hour']] = dataset[timeColumn].apply(
+        lambda date: pd.Series([
+            date.year,
+            date.month,
+            date.day,
+            date.weekday(),
+            date.hour if hasattr(date, 'hour') else -1
+        ])
+    )
+    return dataset
+
 def translateMonthFromDate(datestr: str):
     for ptMonth, engMonth in MONTH_DICT.items():
         if ptMonth in datestr.lower():
