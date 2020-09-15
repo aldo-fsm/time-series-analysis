@@ -28,8 +28,17 @@ st.write(
     train.head(100)
 )
 
+initialWindow = int(len(train)*0.01)
+window = st.number_input('Window', value=initialWindow, min_value=1, max_value=len(train), step=1)
+rolling = train.value.rolling(window)
+train['rolling_mean'] = rolling.mean()
+train['rolling_std'] = rolling.std()
+
 st.write(
-    px.line(x=train.index, y=train.value),
+    px.line(train, x=train.index, y=[train.value, train.rolling_mean, train.rolling_std])
+)
+
+st.write(
     px.box(
         x=train.month.apply(lambda month: calendar.month_name[month]),
         y=train.value,
