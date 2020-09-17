@@ -17,10 +17,10 @@ loader, train, test = load(selectedDataset)
 train = train.rename(columns={ loader.valueColumn: 'value' })
 test = test.rename(columns={ loader.valueColumn: 'value' })
 
-train['time'] = train.index
-
 st.write('train:', train.shape)
 st.write('test:', test.shape)
+
+train['time'] = train.index
 
 train = decomposeDate(train)
 
@@ -39,6 +39,12 @@ st.write(
 )
 
 st.write(
+    px.violin(
+        train,
+        x=train.value,
+        orientation='h',
+        box=True,
+    ),
     px.box(
         x=train.month.apply(lambda month: calendar.month_name[month]),
         y=train.value,
@@ -47,12 +53,12 @@ st.write(
     px.box(
         x=train.weekday.apply(lambda weekday: calendar.day_name[weekday]),
         y=train.value,
-        labels=dict(x='Dia da semana')
+        labels=dict(x='Dia da semana'),
     ),
     px.box(
         x=train.day,
         y=train.value,
-        labels=dict(x='Dia do mês')
+        labels=dict(x='Dia do mês'),
     ),
     px.box(
         x=train.hour,
