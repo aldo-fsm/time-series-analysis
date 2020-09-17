@@ -35,7 +35,7 @@ train['rolling_mean'] = rolling.mean()
 train['rolling_std'] = rolling.std()
 
 st.write(
-    px.line(train, x=train.index, y=[train.value, train.rolling_mean, train.rolling_std])
+    px.line(train, x=train.index, y=[train.value.astype(float), train.rolling_mean, train.rolling_std])
 )
 
 st.write(
