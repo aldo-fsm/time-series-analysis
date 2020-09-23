@@ -47,11 +47,11 @@ def testStationarity(series):
     ])
 
 @st.cache()
-def decompose(dataset):
-    freq = pd.infer_freq(dataset.tail(100).index)
-    print(freq)
-    dataset = dataset.asfreq(freq).interpolate()
-    decomposition = sm.tsa.seasonal_decompose(dataset.value, model='additive')
+def decompose(dataset, period):
+    # freq = pd.infer_freq(dataset.tail(100).index)
+    # print(freq)
+    # dataset = dataset.asfreq(freq).interpolate()
+    decomposition = sm.tsa.seasonal_decompose(dataset.value, model='additive', period=period)
     return decomposition
 
 loader, train, test = load(selectedDataset)
@@ -84,17 +84,25 @@ st.write(
 )
 
 pivot = train.pivot_table(index='year',columns='month',values='value')
-decomposition = decompose(train)
-# decomposed = pd.DataFrame(dict(
-#     value=decomposition.observed,
-#     trend=decomposition.trend,
-#     resid=decomposition.resid,
-#     seasonal=decomposition.seasonal
-# ))
+
+initialPeriod = int(len(train)*0.05)
+period = st.number_input('Period', value=initialPeriod, min_value=1, max_value=len(train), step=1)
+
+decomposition = decompose(train, period)
+
+decomposed = pd.DataFrame(dict(
+    value=decomposition.observed,
+    trend=decomposition.trend,
+    resid=decomposition.resid,
+    seasonal=decomposition.seasonal
+))
 st.write(
-    px.imshow(pivot),
-    # px.line(decomposed, x=decomposed.index, y=['trend', 'resid', 'seasonal'])
-    decomposition.plot()
+    decomposition.plot(),
+    px.line(decomposed, x=decomposed.index, y=['trend', 'resid', 'seasonal'])
+)
+
+st.write(
+    px.imshow(pivot, y=pivot.index),
 )
 
 st.write(
