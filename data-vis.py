@@ -6,8 +6,11 @@ from datasets import spxLoader, DATASET_NAMES, getLoaderByName, loadDataFrame
 import calendar
 from utils.parsers import decomposeDate
 from statsmodels.tsa.stattools import adfuller, kpss
+import statsmodels.api as sm
 from transforms import LogTransformer
 from sklearn.preprocessing import PowerTransformer
+from matplotlib import pyplot as plt
+plt.style.use('seaborn')
 
 selectedDataset = st.selectbox('Dataset', DATASET_NAMES)
 
@@ -28,7 +31,7 @@ def applyTransforms(dataset):
     boxcox = PowerTransformer(method='box-cox')
     train['log'] = logTransformer.fit_transform(train.value[:, None])
     train['yeojohnson'] = yeojohnson.fit_transform(train.value[:, None])
-    train['boxcox'] = boxcox.fit_transform(train.value[:, None])
+    train['boxcox'] = boxcox.fit_transform(train.value[:, None] - dataset.value.min() + 1E-10)
     # train['lnreturn'] = returnTransform(train.value)
     return train
 
@@ -42,6 +45,14 @@ def testStationarity(series):
         dict(name='ADF', pvalue=adfPvalue, statistic=adfStatistic, **adfCritical),
         dict(name='KPSS', pvalue=kpssPvalue, statistic=kpssStatistic, **kpssCritical),
     ])
+
+@st.cache()
+def decompose(dataset):
+    freq = pd.infer_freq(dataset.tail(100).index)
+    print(freq)
+    dataset = dataset.asfreq(freq).interpolate()
+    decomposition = sm.tsa.seasonal_decompose(dataset.value, model='additive')
+    return decomposition
 
 loader, train, test = load(selectedDataset)
 train = train.rename(columns={ loader.valueColumn: 'value' })
@@ -70,6 +81,20 @@ train = applyTransforms(train)
 st.write(
     px.line(train, x=train.index, y=[train.value.astype(float), train.rolling_mean, train.rolling_std]),
     px.line(train, x=train.index, y=[train.log, train.yeojohnson, train.boxcox]),
+)
+
+pivot = train.pivot_table(index='year',columns='month',values='value')
+decomposition = decompose(train)
+# decomposed = pd.DataFrame(dict(
+#     value=decomposition.observed,
+#     trend=decomposition.trend,
+#     resid=decomposition.resid,
+#     seasonal=decomposition.seasonal
+# ))
+st.write(
+    px.imshow(pivot),
+    # px.line(decomposed, x=decomposed.index, y=['trend', 'resid', 'seasonal'])
+    decomposition.plot()
 )
 
 st.write(
