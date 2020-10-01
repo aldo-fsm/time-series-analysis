@@ -6,6 +6,7 @@ from datasets import spxLoader, DATASET_NAMES, getLoaderByName, loadDataFrame
 import calendar
 from utils.parsers import decomposeDate
 from statsmodels.tsa.stattools import adfuller, kpss
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 import statsmodels.api as sm
 from transforms import LogTransformer
 from sklearn.preprocessing import PowerTransformer
@@ -98,7 +99,9 @@ decomposed = pd.DataFrame(dict(
 ))
 st.write(
     decomposition.plot(),
-    px.line(decomposed, x=decomposed.index, y=['trend', 'resid', 'seasonal'])
+    px.line(decomposed, x=decomposed.index, y=['trend', 'resid', 'seasonal']),
+    plot_acf(train.value, lags=100),
+    plot_pacf(train.value, lags=100),
 )
 
 st.write(
