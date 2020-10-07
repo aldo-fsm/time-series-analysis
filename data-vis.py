@@ -48,6 +48,17 @@ def testStationarity(series):
     ])
 
 @st.cache()
+def fourierTransform(values):
+    size = len(values)
+    fourier = np.fft.rfft(values)
+    freqs = np.fft.fftfreq(size)[:int(1+size/2)]
+    return pd.DataFrame(dict(
+        frequency=freqs,
+        period=1/freqs,
+        magnitude=np.abs(fourier)
+    ))
+
+@st.cache()
 def decompose(dataset, period):
     # freq = pd.infer_freq(dataset.tail(100).index)
     # print(freq)
@@ -84,10 +95,17 @@ st.write(
     px.line(train, x=train.index, y=[train.value.astype(float), train.rolling_mean, train.rolling_std]),
 )
 
+fftResult = fourierTransform(train.value)
+st.write("Transformada de Fourier")
+st.write(
+    px.line(fftResult, x='frequency', y='magnitude'),
+    px.line(fftResult, x='period', y='magnitude'),
+)
+
 pivot = train.pivot_table(index='year',columns='month',values='value')
 
 initialPeriod = int(len(train)*0.05)
-period = st.number_input('Periodo para sasonalidade', value=initialPeriod, min_value=1, max_value=len(train), step=1)
+period = st.number_input('Periodo para sazonalidade', value=initialPeriod, min_value=1, max_value=len(train), step=1)
 
 decomposition = decompose(train, period)
 
