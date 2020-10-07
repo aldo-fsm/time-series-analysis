@@ -5,7 +5,8 @@ import plotly.express as px
 from datasets import spxLoader, DATASET_NAMES, getLoaderByName, loadDataFrame
 from statsmodels.tsa.api import SimpleExpSmoothing, ExponentialSmoothing
 from sklearn.metrics import mean_squared_error
-selectedDataset = st.selectbox('Dataset', DATASET_NAMES)
+
+selectedDataset = st.selectbox('Selecione a dataset', DATASET_NAMES)
 
 @st.cache()
 def load(selectedDataset):
@@ -19,14 +20,11 @@ test = test.rename(columns={ loader.valueColumn: 'testValue' })
 
 train['time'] = train.index
 
-st.write('train:', train.shape)
-st.write('test:', test.shape)
-
 exponentialSmoothing = SimpleExpSmoothing(train.value)
 exponentialSmoothing.fit()
 
 initialPeriod=25
-period = st.number_input('Period', value=initialPeriod, min_value=1, max_value=len(train), step=1)
+period = st.number_input('Periodo para sasonalidade', value=initialPeriod, min_value=1, max_value=len(train), step=1)
 
 holt = ExponentialSmoothing(train.value, trend='add', seasonal='add', seasonal_periods=period)
 holt.fit()
@@ -41,6 +39,7 @@ fullSeries = pd.concat([
     train,
     test
 ])
+st.write("Predição")
 st.write(
     px.line(fullSeries, x=fullSeries.index, y=['value', 'expsmo', 'holt', 'testValue'])
 )
@@ -49,10 +48,7 @@ errors = pd.DataFrame()
 errors['holtSquaredError'] = (test.testValue - test.holt)**2
 errors['expsmoSquaredError'] = (test.testValue - test.expsmo)**2
 
-st.write(
-    errors
-)
-
+st.write("Erro quadrático médio")
 st.write(
     pd.DataFrame({
         'MSE': [
@@ -61,8 +57,16 @@ st.write(
         ],
     }, index=['Holt', 'Exponential Smoothing'])
 )
+
+st.write("Erros quadráticos")
+st.write(
+    errors
+)
+
 initialWindow = int(len(test)*0.01)
-window = st.number_input('Rolling Error Window', value=initialWindow, min_value=1, max_value=len(errors), step=1)
+window = st.number_input('Janela de analise do erro', value=initialWindow, min_value=1, max_value=len(errors), step=1)
+
+st.write("Gráfico dos erros")
 holtRollingError = errors.holtSquaredError.rolling(window)
 expsmoRollingError = errors.expsmoSquaredError.rolling(window)
 errors['holtMeanSquaredError'] = holtRollingError.mean()
