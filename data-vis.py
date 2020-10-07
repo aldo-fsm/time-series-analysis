@@ -13,7 +13,7 @@ from sklearn.preprocessing import PowerTransformer
 from matplotlib import pyplot as plt
 plt.style.use('seaborn')
 
-selectedDataset = st.selectbox('Dataset', DATASET_NAMES)
+selectedDataset = st.selectbox('Selecione a dataset', DATASET_NAMES)
 
 @st.cache()
 def load(selectedDataset):
@@ -59,35 +59,35 @@ loader, train, test = load(selectedDataset)
 train = train.rename(columns={ loader.valueColumn: 'value' })
 test = test.rename(columns={ loader.valueColumn: 'value' })
 
-st.write('train:', train.shape)
-st.write('test:', test.shape)
-
 train['time'] = train.index
 
 train = decomposeDate(train)
 
-st.write(
-    train.head(100),
-    testStationarity(train.value)
-)
+st.write("Dataset selecionanda")
+st.write(train.head(100))
+
+# ADF: Hipótese nula é que não é estacionária
+# KPSS: Hipótese nula é que é estacionária
+st.write("Análise de estacionariedade")
+st.write(testStationarity(train.value))
 
 initialWindow = int(len(train)*0.01)
-window = st.number_input('Window', value=initialWindow, min_value=1, max_value=len(train), step=1)
+window = st.number_input('Janela de tempo', value=initialWindow, min_value=1, max_value=len(train), step=1)
 rolling = train.value.rolling(window)
 train['rolling_mean'] = rolling.mean()
 train['rolling_std'] = rolling.std()
 
 train = applyTransforms(train)
 
+st.write("Análise")
 st.write(
     px.line(train, x=train.index, y=[train.value.astype(float), train.rolling_mean, train.rolling_std]),
-    px.line(train, x=train.index, y=[train.log, train.yeojohnson, train.boxcox]),
 )
 
 pivot = train.pivot_table(index='year',columns='month',values='value')
 
 initialPeriod = int(len(train)*0.05)
-period = st.number_input('Period', value=initialPeriod, min_value=1, max_value=len(train), step=1)
+period = st.number_input('Periodo para sasonalidade', value=initialPeriod, min_value=1, max_value=len(train), step=1)
 
 decomposition = decompose(train, period)
 
@@ -99,7 +99,7 @@ decomposed = pd.DataFrame(dict(
 ))
 st.write(
     decomposition.plot(),
-    px.line(decomposed, x=decomposed.index, y=['trend', 'resid', 'seasonal']),
+    # px.line(decomposed, x=decomposed.index, y=['trend', 'resid', 'seasonal']),
     plot_acf(train.value, lags=100),
     plot_pacf(train.value, lags=100),
 )
@@ -153,4 +153,9 @@ st.write(
         y=train.value,
         labels=dict(x='Horário')
     )
+)
+
+st.write("Transformações")
+st.write(
+    px.line(train, x=train.index, y=[train.log, train.yeojohnson, train.boxcox]),
 )
