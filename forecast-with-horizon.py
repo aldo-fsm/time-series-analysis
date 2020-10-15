@@ -26,27 +26,31 @@ train['time'] = train.index
 # exponentialSmoothing = SimpleExpSmoothing(train.value)
 # exponentialSmoothing.fit()
 
-initialPeriod=25
-period = st.number_input('Periodo para sasonalidade', value=initialPeriod, min_value=1, max_value=len(train), step=1)
+initialTrainWindowSize = 100
+trainWindowSize = st.number_input('Janela de treinamento', value=initialTrainWindowSize, min_value=1, max_value=len(train), step=1)
 
-initialForecastHorizon=25
+initialPeriod=25
+period = st.number_input('Periodo para sasonalidade', value=initialPeriod, min_value=1, max_value=trainWindowSize, step=1)
+
+initialForecastHorizon = 25
 forecastHorizon = st.number_input('Horizonte de previsão', value=initialForecastHorizon, min_value=1, max_value=len(train), step=1)
+
 progress = st.progress(0)
 @st.cache()
-def forecast(train, test, forecastHorizon, period):
+def forecast(train, test, forecastHorizon, period, trainWindowSize):
     fullSeries = train.copy()
     fullSeries['trainValue'] = fullSeries.value
 
     chunks = list(iterChunks(test, forecastHorizon))
     for i, chunk in enumerate(chunks):
-
-        exponentialSmoothing = SimpleExpSmoothing(fullSeries.trainValue)
+        trainData = fullSeries.tail(trainWindowSize).trainValue
+        exponentialSmoothing = SimpleExpSmoothing(trainData)
         exponentialSmoothing.fit()
 
-        holt = ExponentialSmoothing(fullSeries.trainValue, trend='add', seasonal='add', seasonal_periods=period)
+        holt = ExponentialSmoothing(trainData, trend='add', seasonal='add', seasonal_periods=period)
         holt.fit()
 
-        startIndex = len(fullSeries)
+        startIndex = len(trainData) #len(fullSeries)
         endIndex = startIndex + forecastHorizon - 1
         predExpsmo = exponentialSmoothing.predict(exponentialSmoothing.params, start=startIndex, end=endIndex)
         predHolt = holt.predict(holt.params, start=startIndex, end=endIndex)
@@ -63,7 +67,7 @@ def forecast(train, test, forecastHorizon, period):
         progress.progress((i+1)/(len(chunks)))
     return fullSeries
 
-fullSeries = forecast(train, test, forecastHorizon, period)
+fullSeries = forecast(train, test, forecastHorizon, period, trainWindowSize)
 test = fullSeries.tail(len(test))
 test
 fullSeries.shape
