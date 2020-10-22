@@ -3,13 +3,11 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 from datasets import spxLoader, DATASET_NAMES, getLoaderByName, loadDataFrame
+from utils import iterChunks
 from statsmodels.tsa.api import SimpleExpSmoothing, ExponentialSmoothing
 from sklearn.metrics import mean_squared_error
 
 selectedDataset = st.selectbox('Selecione a dataset', DATASET_NAMES)
-
-def iterChunks(data, chunkSize):
-    return (data[pos:pos + chunkSize] for pos in range(0, len(data), chunkSize))
 
 @st.cache()
 def load(selectedDataset):
