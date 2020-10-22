@@ -1,14 +1,37 @@
 import pandas as pd
 import numpy as np
 from utils import iterChunks
+from datasets import getLoaderByName
+from uuid import uuid4
 from statsmodels.tsa.api import SimpleExpSmoothing, ExponentialSmoothing
 from tqdm import tqdm
 import os
 import json
 
-def getExperiment(experimentId):
+EXPERIMENTS_RESULTS_PATH = 'experiments/results'
+
+def loadDataset(selectedDataset):
+    loader = getLoaderByName(selectedDataset)
+    train, test = loader.load()
+    train = train.rename(columns={ loader.valueColumn: 'value' })
+    test = test.rename(columns={ loader.valueColumn: 'testValue' })
+    train['time'] = train.index
+    return train, test
+
+def findExperiment(datasetName, algorithmName, hyperparams):
     experiments = getExperimentsTable()
-    experiments[experimentId == experiments['id']].iloc[0]
+    if not len(experiments): return
+    experiments['hyperparams'] = experiments['hyperparams'].apply(lambda jsonParams: json.loads(jsonParams))
+    queryResults = experiments[
+        (experiments.datasetName == datasetName) &
+        (experiments.algorithmName == algorithmName) &
+        (experiments.hyperparams == hyperparams)
+    ]
+    if (len(queryResults)): return queryResults.iloc[0]
+
+def saveResults(experimentId, data):
+    if not os.path.isdir(EXPERIMENTS_RESULTS_PATH): os.makedirs(EXPERIMENTS_RESULTS_PATH)
+    data.to_csv(f'{EXPERIMENTS_RESULTS_PATH}/{experimentId}.csv')
 
 def getExperimentsTable():
     if os.path.isfile('./experiments.csv'):
@@ -19,7 +42,7 @@ def getExperimentsTable():
         return df
 
 def naiveForecast(history, forecastHorizon):
-    return np.repeat(history[-1], forecastHorizon)
+    return np.repeat(history.values[-1], forecastHorizon)
 
 def simpleESForecast(history, forecastHorizon, alpha, trainingWindow=None):
     trainData = (history.tail(trainingWindow) if trainingWindow else history).trainValue
@@ -49,17 +72,29 @@ predictFuncs = {
     HOLT_WINTERS: holtWintersForecast,
 }
 
-def runExperiment(experimentId, trainSize, test, algorithmName, hyperparams):
-    experiment = getExperiment(experimentId)
-    fullseries = pd.read_csv(experiment['resultsTable'])
+def runExperiment(datasetName, algorithmName, hyperparams):
+    train, test = loadDataset(datasetName)
+    experiment = findExperiment(datasetName, algorithmName, hyperparams)
+    if not experiment:
+        experiment = pd.Series(dict(
+            id=str(uuid4()),
+            datasetName=datasetName,
+            algorithmName=algorithmName,
+            hyperparams=json.dumps(hyperparams)
+        ))
+        fullseries = train.copy()
+        fullseries['trainValue'] = fullseries['value']
+        saveResults(experiment['id'], fullseries)
+
+    fullseries = pd.read_csv(f'{EXPERIMENTS_RESULTS_PATH}/{experiment["id"]}.csv')
     forecastHorizon = hyperparams['forecastHorizon']
     predict = predictFuncs[algorithmName]
     chunks = list(iterChunks(test, forecastHorizon))
-    for i, chunk in tqdm(enumerate(chunks)):
-        if not pd.isna(fullseries.iloc[trainSize + i*forecastHorizon].trainValue): continue
+    for i, chunk in enumerate(tqdm(chunks)):
+        if len(fullseries) > len(train) + i*forecastHorizon: continue
         ypred = predict(fullseries, **hyperparams)
         newData = chunk.copy()
         newData['trainValue'] = newData.testValue
         newData[algorithmName] = ypred[:len(chunk)]
         fullseries = fullseries.append(newData)
-
+        saveResults(experiment['id'], fullseries)
