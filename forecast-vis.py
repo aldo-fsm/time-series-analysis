@@ -26,14 +26,14 @@ errors = pd.DataFrame()
 for predCol in predColumns:
     errors[predCol] = (predictions.testValue - predictions[predCol])**2
 
-st.write("Erro quadrático médio")
-st.write(
-    pd.DataFrame({
-        'MSE': [
-            mean_squared_error(predictions.testValue.values, predictions[predCol].values)
-        for predCol in predColumns],
-    }, index=predColumns)
-)
+# st.write("Erro quadrático médio")
+# st.write(
+#     pd.DataFrame({
+#         'RMSE': [
+#             mean_squared_error(predictions.testValue.values, predictions[predCol].values, squared=False)
+#         for predCol in predColumns],
+#     }, index=predColumns)
+# )
 
 st.write("Erros quadráticos")
 st.write(

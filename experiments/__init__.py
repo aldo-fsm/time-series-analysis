@@ -89,7 +89,7 @@ def simpleESForecast(history, forecastHorizon, trainingWindow=None):
     endIndex = startIndex + forecastHorizon - 1
     return exponentialSmoothing.predict(exponentialSmoothing.params, start=startIndex, end=endIndex)
 
-def holtWintersForecast(history, forecastHorizon, alpha, seasonal_periods, trend, seasonal, trainingWindow=None):
+def holtWintersForecast(history, forecastHorizon, seasonal_periods, trend, seasonal, trainingWindow=None):
     trainData = (history.tail(trainingWindow) if trainingWindow else history).trainValue
     holt = ExponentialSmoothing(trainData, trend=trend, seasonal=seasonal, seasonal_periods=seasonal_periods)
     holt.fit()
@@ -123,6 +123,7 @@ def loadExperimentsAndResults(datasetName):
     experiments = experiments[experiments.datasetName == datasetName]
     for i, experiment in experiments.iterrows():
         results = loadExperimentResults(experiment['id'], True)
+        if results is None: continue
         predictions = results['prediction']
         test[f"pred_{experiment['algorithmName']}_{experiment['hyperparams']}"] = predictions.to_list() + [None]*(len(test) - len(predictions))
     return experiments, test
