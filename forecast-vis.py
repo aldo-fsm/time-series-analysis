@@ -11,12 +11,13 @@ selectedDataset = st.selectbox('Selecione a dataset', DATASET_NAMES)
 train, test = loadDataset(selectedDataset)
 experiments, predictions = loadExperimentsAndResults(selectedDataset)
 fullSeries = pd.concat([train, predictions])
+
+st.write('Experimentos')
 st.write(
-    loadExperimentResults(experiments.iloc[0]['id'], index=True)
+    experiments
 )
 
 predColumns = [col for col in fullSeries.columns if 'pred_' in col]
-predColumns
 st.write("Predição")
 st.write(
     px.line(fullSeries, x=fullSeries.index, y=['value', 'testValue', *predColumns])
@@ -26,14 +27,14 @@ errors = pd.DataFrame()
 for predCol in predColumns:
     errors[predCol] = (predictions.testValue - predictions[predCol])**2
 
-# st.write("Erro quadrático médio")
-# st.write(
-#     pd.DataFrame({
-#         'RMSE': [
-#             mean_squared_error(predictions.testValue.values, predictions[predCol].values, squared=False)
-#         for predCol in predColumns],
-#     }, index=predColumns)
-# )
+st.write("Erro quadrático médio (RSME)")
+st.write(
+    pd.DataFrame({
+        'RMSE': [
+            mean_squared_error(predictions.testValue.values, predictions[predCol].values, squared=False)
+        for predCol in predColumns],
+    }, index=predColumns)
+)
 
 st.write("Erros quadráticos")
 st.write(
@@ -48,7 +49,7 @@ st.write(
 # expsmoRollingError = errors.expsmoSquaredError.rolling(window)
 # errors['holtMeanSquaredError'] = holtRollingError.mean()
 # errors['expsmoMeanSquaredError'] = expsmoRollingError.mean()
+
 st.write(
-    px.line(errors, y=predColumns)
-    # px.line(errors, y=['holtSquaredError', 'expsmoSquaredError', 'holtMeanSquaredError', 'expsmoMeanSquaredError'])
+    px.line(errors.astype(np.float64), y=predColumns)
 )
