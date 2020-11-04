@@ -5,6 +5,7 @@ from utils.parsers import parseDataset
 from datasets import getLoaderByName
 from uuid import uuid4
 from statsmodels.tsa.api import SimpleExpSmoothing, ExponentialSmoothing
+from statsmodels.tsa.arima.model import ARIMA
 from tqdm import tqdm
 import os
 import json
@@ -98,14 +99,24 @@ def holtWintersForecast(history, forecastHorizon, seasonal_periods, trend, seaso
     endIndex = startIndex + forecastHorizon - 1
     return holt.predict(holt.params, start=startIndex, end=endIndex)
 
+def arimaForecast(history, forecastHorizon, p, d, q, trainingWindow=None):
+    trainData = (history.tail(trainingWindow) if trainingWindow else history).trainValue
+    arima = ARIMA(trainData, order=(p,d,q))
+    fittedModel = arima.fit()
+    startIndex = len(trainData)
+    endIndex = startIndex + forecastHorizon - 1
+    return fittedModel.predict(startIndex, endIndex).values
+
 NAIVE='naive'
 HOLT_WINTERS='holtWinters'
 EXPONENTIAL_SMOOTHING='exponentialSmoothing'
+ARIMA_FORECAST='arima'
 
 predictFuncs = {
     NAIVE: naiveForecast,
     EXPONENTIAL_SMOOTHING: simpleESForecast,
     HOLT_WINTERS: holtWintersForecast,
+    ARIMA_FORECAST: arimaForecast
 }
 
 def loadExperimentResults(experimentId, index=False):

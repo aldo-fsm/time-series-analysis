@@ -1,4 +1,4 @@
-from experiments import runExperiment, findOrCreateExpeiment, NAIVE, EXPONENTIAL_SMOOTHING, HOLT_WINTERS
+from experiments import runExperiment, findOrCreateExpeiment, NAIVE, EXPONENTIAL_SMOOTHING, HOLT_WINTERS, ARIMA_FORECAST
 from datasets import spxLoader, electricDemandLoader, seriaMaLoader
 from tqdm import tqdm
 import numpy as np
@@ -55,6 +55,15 @@ experimentBatch = [
                 )
             ) for period in spxPeriods
         ],
+        dict(
+            algorithmName=ARIMA_FORECAST,
+            datasetName=spxLoader.datasetName,
+            hyperparams=dict(
+                forecastHorizon=spxForecastHorizon,
+                trainingWindow=600,
+                p=2, d=1, q=1
+            )
+        ),
 
         # CECOVEL
         dict(
@@ -83,6 +92,15 @@ experimentBatch = [
                 )
             ) for period in electricDemandPeriods
         ],
+        dict(
+            algorithmName=ARIMA_FORECAST,
+            datasetName=electricDemandLoader.datasetName,
+            hyperparams=dict(
+                forecastHorizon=electricDemandForecastHorizon,
+                trainingWindow=600,
+                p=2, d=1, q=1
+            )
+        ),
 
         # SERIA MA
         dict(
@@ -110,7 +128,16 @@ experimentBatch = [
                     seasonal='add'
                 )
             ) for period in seriaMaPeriods
-        ]
+        ],
+        dict(
+            algorithmName=ARIMA_FORECAST,
+            datasetName=seriaMaLoader.datasetName,
+            hyperparams=dict(
+                forecastHorizon=seriaMaForecastHorizon,
+                trainingWindow=600,
+                p=2, d=1, q=1
+            )
+        ),
     ]
 ]
 
