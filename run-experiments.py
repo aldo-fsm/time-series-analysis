@@ -64,6 +64,15 @@ experimentBatch = [
                 p=2, d=1, q=1
             )
         ),
+        dict(
+            algorithmName=ARIMA_FORECAST,
+            datasetName=spxLoader.datasetName,
+            hyperparams=dict(
+                forecastHorizon=spxForecastHorizon,
+                trainingWindow=1500,
+                p=2, d=1, q=1
+            )
+        ),
 
         # CECOVEL
         dict(
@@ -101,6 +110,24 @@ experimentBatch = [
                 p=2, d=1, q=1
             )
         ),
+        dict(
+            algorithmName=ARIMA_FORECAST,
+            datasetName=electricDemandLoader.datasetName,
+            hyperparams=dict(
+                forecastHorizon=electricDemandForecastHorizon,
+                trainingWindow=800,
+                p=20, d=1, q=10
+            )
+        ),
+        dict(
+            algorithmName=ARIMA_FORECAST,
+            datasetName=electricDemandLoader.datasetName,
+            hyperparams=dict(
+                forecastHorizon=electricDemandForecastHorizon,
+                trainingWindow=1500,
+                p=2, d=1, q=1
+            )
+        ),
 
         # SERIA MA
         dict(
@@ -135,6 +162,24 @@ experimentBatch = [
             hyperparams=dict(
                 forecastHorizon=seriaMaForecastHorizon,
                 trainingWindow=600,
+                p=2, d=1, q=1
+            )
+        ),
+        dict(
+            algorithmName=ARIMA_FORECAST,
+            datasetName=seriaMaLoader.datasetName,
+            hyperparams=dict(
+                forecastHorizon=seriaMaForecastHorizon,
+                trainingWindow=800,
+                p=20, d=1, q=10
+            )
+        ),
+        dict(
+            algorithmName=ARIMA_FORECAST,
+            datasetName=seriaMaLoader.datasetName,
+            hyperparams=dict(
+                forecastHorizon=seriaMaForecastHorizon,
+                trainingWindow=1500,
                 p=2, d=1, q=1
             )
         ),

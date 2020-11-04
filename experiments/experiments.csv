@@ -17,3 +17,8 @@ id,datasetName,algorithmName,hyperparams
 0,638d2332-a32b-4af5-aa35-9ecdfcc9a792,datasets_55485_106148_spx,arima,"{""forecastHorizon"": 1, ""trainingWindow"": 600, ""p"": 2, ""d"": 1, ""q"": 1}"
 0,5a4a3870-368c-4aad-b982-26fcd6348c2b,ElectricDemandForecasting-DL-master_data_CECOVEL,arima,"{""forecastHorizon"": 24, ""trainingWindow"": 600, ""p"": 2, ""d"": 1, ""q"": 1}"
 0,ba069e52-ed12-4e16-bb68-d257b9a16434,SERIA_MA,arima,"{""forecastHorizon"": 7, ""trainingWindow"": 600, ""p"": 2, ""d"": 1, ""q"": 1}"
+0,c4989986-704f-4ab7-838a-88b208952559,datasets_55485_106148_spx,arima,"{""forecastHorizon"": 1, ""trainingWindow"": 1500, ""p"": 2, ""d"": 1, ""q"": 1}"
+0,4573e410-e34a-4ce8-a9b4-d731c5ae7491,ElectricDemandForecasting-DL-master_data_CECOVEL,arima,"{""forecastHorizon"": 24, ""trainingWindow"": 1500, ""p"": 2, ""d"": 1, ""q"": 1}"
+0,d804b5f4-d368-47d4-b63c-fd0e043e24a2,SERIA_MA,arima,"{""forecastHorizon"": 7, ""trainingWindow"": 1500, ""p"": 2, ""d"": 1, ""q"": 1}"
+0,7221c99c-d17c-424d-8ec9-a0a5907618d4,ElectricDemandForecasting-DL-master_data_CECOVEL,arima,"{""forecastHorizon"": 24, ""trainingWindow"": 800, ""p"": 20, ""d"": 1, ""q"": 10}"
+0,ba543a8a-9755-44a9-85a8-f449eafc05c9,SERIA_MA,arima,"{""forecastHorizon"": 7, ""trainingWindow"": 800, ""p"": 20, ""d"": 1, ""q"": 10}"
